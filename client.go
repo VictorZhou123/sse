@@ -50,6 +50,7 @@ type Client struct {
 	ResponseValidator ResponseValidator
 	Connection        *http.Client
 	URL               string
+	Method            string
 	LastEventID       atomic.Value // []byte
 	maxBufferSize     int
 	mu                sync.Mutex
@@ -63,6 +64,7 @@ func NewClient(url string, opts ...func(c *Client)) *Client {
 		URL:           url,
 		Connection:    &http.Client{},
 		Headers:       make(map[string]string),
+		Method:        "GET",
 		subscribed:    make(map[chan *Event]chan struct{}),
 		maxBufferSize: 1 << 16,
 	}
@@ -289,7 +291,7 @@ func (c *Client) OnConnect(fn ConnCallback) {
 }
 
 func (c *Client) request(ctx context.Context, stream string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", c.URL, nil)
+	req, err := http.NewRequest(c.Method, c.URL, nil)
 	if err != nil {
 		return nil, err
 	}
